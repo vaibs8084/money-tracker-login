@@ -45,7 +45,7 @@ function handleCredential(response){
     status('Apps Script web app URL is not configured.', true);
     return;
   }
-  status('Signing you in…');
+  status('Signing you in… Google may open a confirmation page.');
   const form=document.createElement('form');
   form.method='POST';
   form.action=APPS_SCRIPT_URL;
