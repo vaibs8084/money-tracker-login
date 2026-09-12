@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Money Tracker — Sign in</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root{color-scheme:dark}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0b0d11;color:#f5f7fb;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:24px}
+    .card{width:min(430px,100%);background:#14171d;border:1px solid #292e38;border-radius:24px;padding:34px 28px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+    .logo{font-size:48px;margin-bottom:8px}.title{font-size:29px;font-weight:900}.sub{color:#9ca4b2;line-height:1.55;font-size:14px;margin:10px 0 25px}
+    #googleButton{display:flex;justify-content:center;min-height:44px}
+    .status{margin-top:16px;color:#9ca4b2;font-size:12px;line-height:1.45}.error{color:#ff8f8f}
+    .privacy{margin-top:22px;color:#707887;font-size:11px;line-height:1.5}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">💰</div>
+    <div class="title">Money Tracker</div>
+    <div class="sub">Sign in with Google. We'll automatically create your private Money Tracker and keep your data separated from every other account.</div>
+    <div id="googleButton"></div>
+    <div id="status" class="status">Preparing secure sign-in…</div>
+    <div class="privacy">Your Google ID token is verified by the Money Tracker backend. No Google Drive or Sheets access is requested from your account.</div>
+  </main>
+
+<script>
+const GOOGLE_CLIENT_ID = 'PASTE_YOUR_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com';
+const APPS_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL';
+
+function status(message, error){
+  const el=document.getElementById('status');
+  el.textContent=message||'';
+  el.className='status'+(error?' error':'');
+}
+
+function handleCredential(response){
+  if(!response || !response.credential){
+    status('Google did not return a sign-in credential.', true);
+    return;
+  }
+  if(APPS_SCRIPT_URL.indexOf('PASTE_YOUR_')===0){
+    status('Apps Script web app URL is not configured.', true);
+    return;
+  }
+  status('Signing you in…');
+  const form=document.createElement('form');
+  form.method='POST';
+  form.action=APPS_SCRIPT_URL;
+  form.style.display='none';
+  const input=document.createElement('input');
+  input.type='hidden';
+  input.name='credential';
+  input.value=response.credential;
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+}
+
+function initializeGoogle(){
+  if(GOOGLE_CLIENT_ID.indexOf('PASTE_YOUR_')===0){
+    status('Google Web Client ID is not configured.', true);
+    return;
+  }
+  if(APPS_SCRIPT_URL.indexOf('PASTE_YOUR_')===0){
+    status('Apps Script web app URL is not configured.', true);
+    return;
+  }
+  if(!window.google || !google.accounts || !google.accounts.id){
+    setTimeout(initializeGoogle,250);
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id:GOOGLE_CLIENT_ID,
+    callback:handleCredential,
+    auto_select:false,
+    ux_mode:'popup'
+  });
+  google.accounts.id.renderButton(
+    document.getElementById('googleButton'),
+    {theme:'outline',size:'large',text:'continue_with',shape:'rectangular',width:280}
+  );
+  status('');
+}
+
+window.addEventListener('load', initializeGoogle);
+</script>
+</body>
+</html>
